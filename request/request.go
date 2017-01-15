@@ -117,9 +117,9 @@ func (r *Request)MakeSquare(ownerid int, seq int) Request{
     // At this point have a slice of valid coords and a matching slice of chars
     for len(chars) > 0 {
         charwh := int(rand.Intn(len(chars)))
-        coordwh := int(rand.Intn(len(coords)))
+        //coordwh := int(rand.Intn(len(coords)))
         c := chars.PopFrom(charwh)
-        cd := coords.PopFrom(coordwh)
+        cd := coords.PopFrom(0) // just take the first one as chars random
         newr.Square[cd.x][cd.y] = c
     }
     return newr // copy of original without the musts but with the square
