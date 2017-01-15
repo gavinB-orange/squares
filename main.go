@@ -5,45 +5,51 @@
 package main
 
 import (
+    "encoding/json"
     "flag"
     "fmt"
     "github.com/gavinB-orange/squares/request"
+    "os"
     "runtime"
     "time"
 )
 
+var filename string
 var dFlag bool
 var nSolvers int
 var nMakers int
 var verbose bool
 
-func createTemplateReq() request.Request {
+type Config struct {
+    Xsize int
+    Ysize int
+    Words []string
+}
+
+func createTemplateReq(fn string) request.Request {
+    file, err := os.Open(fn)
+    if err != nil {
+        panic("Cannot open config file!")
+    }
+    decoder := json.NewDecoder(file)
+    config := Config{}
+    err = decoder.Decode(&config)
+    if err != nil {
+        panic("Failed to parse json file")
+    }
     var req request.Request
-    req.Xsize = 4
-    req.Ysize = 4
-    // add words - don't include reversed or included words
-    req.Addword("SWOT")
-    req.Addword("PIG")
-    req.Addword("AND")
-    req.Addword("GNU")
-    req.Addword("SPAR")
-    req.Addword("WIN")
-    req.Addword("TUB")
-    req.Addword("TUG")
-    req.Addword("GIN")
-    req.Addword("WIG")
-    req.Addword("GUT")
-    req.Addword("GOT")
-    req.Addword("PAN")
-    req.Addword("SWIG")
-    req.Addword("PING")
-    req.Addword("GRAN")
+    req.Xsize = config.Xsize
+    req.Ysize = config.Ysize
+    for _, w := range(config.Words) {
+        req.Addword(w)
+    }
     // add must-have chars
     req.SetMusts()
     return req
 }
 
 func main() {
+    flag.StringVar(&filename, "f", "input.json", "File containing puzzle to run")
     flag.BoolVar(&dFlag, "t", false, "Test mode - known good square provided")
     flag.BoolVar(&verbose, "v", false, "Verbose")
     flag.IntVar(&nSolvers, "s", 0, "Number of solvers")
@@ -57,7 +63,7 @@ func main() {
     }
     fmt.Println("Running on a system with ", runtime.NumCPU()," cores.")
     // set up the template
-    req := createTemplateReq()
+    req := createTemplateReq(filename)
     // get comms sorted out
     reqChan := make(chan request.Request, nSolvers)
     resChan := make(chan request.Request, nSolvers)
