@@ -139,7 +139,7 @@ func (r *Request) ShowSquare() {
     fmt.Println("============")
     fmt.Printf("Owner = %d, seq = %d :\n", r.owner, r.seq)
     for _, row := range(r.Square) {
-        fmt.Println(row)
+        fmt.Println(string(row))
     }
     fmt.Println("============")
 }
