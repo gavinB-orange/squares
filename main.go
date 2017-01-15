@@ -11,6 +11,7 @@ import (
     "github.com/gavinB-orange/squares/request"
     "os"
     "runtime"
+    "runtime/pprof"
     "time"
 )
 
@@ -19,6 +20,8 @@ var dFlag bool
 var nSolvers int
 var nMakers int
 var verbose bool
+var cpuprofile string
+
 
 type Config struct {
     Xsize int
@@ -49,12 +52,21 @@ func createTemplateReq(fn string) request.Request {
 }
 
 func main() {
-    flag.StringVar(&filename, "f", "input.json", "File containing puzzle to run")
-    flag.BoolVar(&dFlag, "t", false, "Test mode - known good square provided")
+    flag.StringVar(&filename, "f", "input.json", "File containing details of puzzle to run in json format.")
+    flag.BoolVar(&dFlag, "t", false, "Test mode - known good square provided.")
     flag.BoolVar(&verbose, "v", false, "Verbose")
-    flag.IntVar(&nSolvers, "s", 0, "Number of solvers")
-    flag.IntVar(&nMakers, "m", 0, "Number of makers")
+    flag.IntVar(&nSolvers, "s", 0, "Number of solvers. Default is NumCPU * 2.")
+    flag.IntVar(&nMakers, "m", 0, "Number of makers. Default is NumCPU.")
+    flag.StringVar(&cpuprofile, "cpuprofile", "", "write cpu profile to file")
     flag.Parse()
+    if cpuprofile != "" {
+        f, err := os.Create(cpuprofile)
+        if err != nil {
+            panic("Could not write cpu profile file")
+        }
+        pprof.StartCPUProfile(f)
+        defer pprof.StopCPUProfile()
+    }
     if nSolvers == 0 {
         nSolvers = runtime.NumCPU() * 2
     }
