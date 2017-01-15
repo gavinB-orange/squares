@@ -24,6 +24,7 @@ type Request struct {
     Square [][]byte  // the square 
     Words [][]byte   // words used to make the square
     Musts []byte     // characters that must be present
+    Extras []byte    // characters that appear more than once - only these should be used for padding
 }
 
 func assert(cond bool, message string) {
@@ -62,19 +63,24 @@ func (r *Request) Addword(w string) {
 
 // SetMusts : From the known words, create the set of must-have chars
 func (r *Request) SetMusts() {
-    cm := make(map[byte]bool)
+    cm := make(map[byte]int)
     for _, w := range(r.Words) {
         for i := 0; i<len(w); i++ {
-            cm[w[i]] = true
+            cm[w[i]] ++
         }
     }
-    keys := make([]byte, len(cm))
-    i := 0
-    for k, _ := range cm {
-        keys[i] = k
-        i++
+    extras := make([]byte, 0)
+    musts := make([]byte, 0)
+    for k, n := range cm {
+        musts = append(musts, k)  // all known characters
+        if n > 1 {
+            for i:= 0; i<(n-1); i++ {
+                extras = append(extras, k)  // add repeats to padding list reflecting how often used.
+            }
+        }
     }
-    r.Musts = keys
+    r.Musts = musts
+    r.Extras = extras
 }
 
 // MakeSquare : Create a square containing a padded set of chars (as bytes)
@@ -86,7 +92,8 @@ func (r *Request)MakeSquare(ownerid int, seq int) Request{
                     false,
                     make([][]byte, 0),
                     make([][]byte, 0),
-                    make([]byte, 0)} // musts not required when solving
+                    make([]byte, 0), // musts not required when solving
+                    make([]byte, 0)} // extras not required when solving
     for x:= 0; x<r.Xsize; x++ {
         col := make([]byte, r.Ysize)
         newr.Square = append(newr.Square, col)
@@ -104,8 +111,8 @@ func (r *Request)MakeSquare(ownerid int, seq int) Request{
     copy (chars, r.Musts)
     // pad with additional chars
     for i := 0; i < (r.Xsize * r.Ysize) - len(r.Musts); i++ {
-        wh := int(rand.Int31n(int32(len(chars))))
-        chars = append(chars, chars[wh])
+        wh := int(rand.Int31n(int32(len(r.Extras))))
+        chars = append(chars, r.Extras[wh])
     }
     assert(len(chars) == len(coords), "Lengths must match")
     // At this point have a slice of valid coords and a matching slice of chars
