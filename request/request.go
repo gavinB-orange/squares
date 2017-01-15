@@ -4,7 +4,6 @@ package request
 import (
     "fmt"
     "math/rand"
-    "runtime"
 )
 
 const verbose = true
@@ -111,14 +110,14 @@ func (r *Request)MakeSquare(ownerid int, seq int) Request{
     copy (chars, r.Musts)
     // pad with additional chars
     for i := 0; i < (r.Xsize * r.Ysize) - len(r.Musts); i++ {
-        wh := int(rand.Int31n(int32(len(r.Extras))))
+        wh := int(rand.Intn(len(r.Extras)))
         chars = append(chars, r.Extras[wh])
     }
     assert(len(chars) == len(coords), "Lengths must match")
     // At this point have a slice of valid coords and a matching slice of chars
     for len(chars) > 0 {
-        charwh := int(rand.Int31n(int32(len(chars))))
-        coordwh := int(rand.Int31n(int32(len(coords))))
+        charwh := int(rand.Intn(len(chars)))
+        coordwh := int(rand.Intn(len(coords)))
         c := chars.PopFrom(charwh)
         cd := coords.PopFrom(coordwh)
         newr.Square[cd.x][cd.y] = c
@@ -246,15 +245,14 @@ func Solver(id int, in chan Request, out chan Request, verbose bool) {
         if verbose {
             req.ShowSquare()
         }
-        special := verbose || (req.owner > runtime.NumCPU())  // flags a test case
         ok := true
         for n, wd := range(req.Words) {
-            if special || (n > mythresh) {
+            if verbose || (n > mythresh) {
                 fmt.Println("Solver", id, "->", n)
                 req.ShowSquare()
                 mythresh = n
             }
-            ok = ok && req.FindWord(wd, special)
+            ok = ok && req.FindWord(wd, verbose)
             if ! ok {
                 break
             }

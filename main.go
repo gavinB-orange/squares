@@ -55,8 +55,8 @@ func main() {
     flag.StringVar(&filename, "f", "input.json", "File containing details of puzzle to run in json format.")
     flag.BoolVar(&dFlag, "t", false, "Test mode - known good square provided.")
     flag.BoolVar(&verbose, "v", false, "Verbose")
-    flag.IntVar(&nSolvers, "s", 0, "Number of solvers. Default is NumCPU * 2.")
-    flag.IntVar(&nMakers, "m", 0, "Number of makers. Default is NumCPU.")
+    flag.IntVar(&nSolvers, "s", 0, "Number of solvers. Default is NumCPU.")
+    flag.IntVar(&nMakers, "m", 0, "Number of makers. Default is NumCPU * 4.")
     flag.StringVar(&cpuprofile, "cpuprofile", "", "write cpu profile to file")
     flag.Parse()
     if cpuprofile != "" {
@@ -68,10 +68,10 @@ func main() {
         defer pprof.StopCPUProfile()
     }
     if nSolvers == 0 {
-        nSolvers = runtime.NumCPU() * 2
+        nSolvers = runtime.NumCPU()
     }
     if nMakers == 0 {
-        nMakers = runtime.NumCPU()
+        nMakers = runtime.NumCPU() * 4
     }
     fmt.Println("Running on a system with ", runtime.NumCPU()," cores.")
     // set up the template
