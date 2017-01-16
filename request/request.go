@@ -210,7 +210,7 @@ func (r *Request)walkword(sc Coord, target []byte, depth int, debug bool) bool {
     return false
 }
 
-// Given a target byte slide, walk the square and find it
+// Given a target byte slice, walk the square and find it
 func (r *Request) FindWord(target []byte, debug bool) bool {
     if len(target) <= 0 {
         fmt.Println("target word empty")
@@ -239,25 +239,30 @@ func (r *Request) FindWord(target []byte, debug bool) bool {
 }
 
 // Try to find all the words
-func Solver(id int, in chan Request, out chan Request, verbose bool) {
+func Solver(id int, in chan Request, out chan Request, slowfail bool, verbose bool) {
     mythresh := 0
     for req := range(in) {
         if verbose {
             req.ShowSquare()
         }
-        ok := true
-        for n, wd := range(req.Words) {
-            if verbose || (n > mythresh) {
-                fmt.Println("Solver", id, "->", n)
-                req.ShowSquare()
-                mythresh = n
-            }
-            ok = ok && req.FindWord(wd, verbose)
-            if ! ok {
-                break
+        found := 0
+        for _, wd := range(req.Words) {
+            if req.FindWord(wd, verbose) {
+                found++
+                if verbose || (found > mythresh) {
+                    fmt.Println("Solver", id, "->", found)
+                    req.ShowSquare()
+                    mythresh =found
+                }
+            } else {
+                if ! slowfail {
+                    break
+                }
             }
         }
-        req.Found = ok
+        if found == len(req.Words) {
+            req.Found = true
+        }
         out <- req
     }
 }

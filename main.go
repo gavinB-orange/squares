@@ -20,8 +20,8 @@ var dFlag bool
 var nSolvers int
 var nMakers int
 var verbose bool
+var slowfail bool
 var cpuprofile string
-
 
 type Config struct {
     Xsize int
@@ -54,6 +54,7 @@ func createTemplateReq(fn string) request.Request {
 func main() {
     flag.StringVar(&filename, "f", "input.json", "File containing details of puzzle to run in json format.")
     flag.BoolVar(&dFlag, "t", false, "Test mode - known good square provided.")
+    flag.BoolVar(&slowfail, "S", false, "Slow fail - check all words rather than bail out at first failure.")
     flag.BoolVar(&verbose, "v", false, "Verbose")
     flag.IntVar(&nSolvers, "s", 0, "Number of solvers. Default is NumCPU.")
     flag.IntVar(&nMakers, "m", 0, "Number of makers. Default is NumCPU * 4.")
@@ -77,12 +78,12 @@ func main() {
     // set up the template
     req := createTemplateReq(filename)
     // get comms sorted out
-    reqChan := make(chan request.Request, nSolvers)
-    resChan := make(chan request.Request, nSolvers)
+    reqChan := make(chan request.Request, nMakers * 2)
+    resChan := make(chan request.Request, nSolvers * 2)
     // OK at this point have everything ready for an attempt
     // set off the solvers
     for i := 0; i<nSolvers; i++ {
-        go request.Solver(i, reqChan, resChan, verbose)
+        go request.Solver(i, reqChan, resChan, slowfail, verbose)
     }
     // and makers
     for i := 0; i<nMakers; i++ {
