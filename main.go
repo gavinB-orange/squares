@@ -68,13 +68,15 @@ func main() {
         pprof.StartCPUProfile(f)
         defer pprof.StopCPUProfile()
     }
+    fmt.Println("Running on a system with ", runtime.NumCPU()," cores.")
     if nSolvers == 0 {
         nSolvers = runtime.NumCPU()
+        fmt.Println("Running with", nSolvers, " solvers")
     }
     if nMakers == 0 {
         nMakers = runtime.NumCPU() * 4
+        fmt.Println("Running with", nMakers, " makers")
     }
-    fmt.Println("Running on a system with ", runtime.NumCPU()," cores.")
     // set up the template
     req := createTemplateReq(filename)
     // get comms sorted out
