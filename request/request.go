@@ -3,7 +3,6 @@ package request
 
 import (
     "fmt"
-    "math/rand"
 )
 
 const verbose = true
@@ -12,6 +11,20 @@ func report(mess string) {
     if verbose {
         fmt.Printf(mess)
     }
+}
+
+var myrandu = 1234
+var myrandv = 23
+
+// fast pseudo-rand returns value from 0 .. max
+func myrand(up, vp *int, max int) int {
+	*vp = 36969*(*vp&65535) + (*vp >> 16)
+	*up = 18000*(*up&65535) + (*up >> 16)
+	res := (*vp << 16) + *up
+	if res < 0 {
+	    res = -res
+	}
+	return (res % max)
 }
 
 type Request struct {
@@ -110,13 +123,15 @@ func (r *Request)MakeSquare(ownerid int, seq int) Request{
     copy (chars, r.Musts)
     // pad with additional chars
     for i := 0; i < (r.Xsize * r.Ysize) - len(r.Musts); i++ {
-        wh := int(rand.Intn(len(r.Extras)))
+        //wh := int(rand.Intn(len(r.Extras)))
+        wh := myrand(&myrandu, &myrandv, len(r.Extras))
         chars = append(chars, r.Extras[wh])
     }
     assert(len(chars) == len(coords), "Lengths must match")
     // At this point have a slice of valid coords and a matching slice of chars
     for len(chars) > 0 {
-        charwh := int(rand.Intn(len(chars)))
+        //charwh := int(rand.Intn(len(chars)))
+        charwh := myrand(&myrandu, &myrandv, len(chars))
         //coordwh := int(rand.Intn(len(coords)))
         c := chars.PopFrom(charwh)
         cd := coords.PopFrom(0) // just take the first one as chars random
